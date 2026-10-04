@@ -242,6 +242,22 @@
   function resBtns(sel, dis) { return RES.map(function (k) { return '<button data-r="' + k + '" class="' + (sel === k ? 'on' : '') + '" style="--rc:' + RI[k].c + '"' + (dis && dis(k) ? ' disabled' : '') + '><span class="e">' + RI[k].e + '</span>' + RI[k].n + '</button>'; }).join(''); }
   function stepper(id, vals, max) { return '<div class="step" id="' + id + '">' + RES.map(function (k) { return '<div style="--rc:' + RI[k].c + '"><span class="e">' + RI[k].e + '</span><b>' + vals[k] + '</b><button data-r="' + k + '" data-d="-1">−</button><button data-r="' + k + '" data-d="1"' + (max && vals[k] >= max[k] ? ' disabled' : '') + '>＋</button></div>'; }).join('') + '</div>'; }
 
+  // 💰 コスト表（いつでも見られる・ほかのダイアログの上に重ねて表示）
+  function showCost() {
+    var P = G && viewer >= 0 && G.players[viewer], items = [
+      ['road', '🛤️ こみち', '', M.LIMIT.road], ['sett', '🏠 いえ', '+1点', M.LIMIT.sett],
+      ['city', '🏰 やかた', '+1点<small>（いえ→）</small>', M.LIMIT.city], ['dev', '🃏 ふしぎカード', '？', 0]];
+    var vpTxt = { road: '—', sett: '1点', city: '2点', dev: '？' };
+    $('costBox').innerHTML = '<button class="x" data-cx aria-label="とじる">×</button><h3>💰 コスト表</h3>' + items.map(function (it) {
+      var c = M.COST[it[0]], can = P && M.has(P.res, c);
+      var left = P ? (it[0] === 'dev' ? 'のこり' + G.deck.length + '枚' : '手もと' + (it[3] - P[{ road: 'roads', sett: 'setts', city: 'cities' }[it[0]]].length) + '/' + it[3]) : (it[3] ? '最大' + it[3] : '');
+      return '<div class="crow' + (can ? ' can' : '') + '"><div class="nm">' + it[1] + '<small>' + (it[0] === 'city' ? 'いえを建てかえ・' : '') + left + (can ? '・作れる！' : '') + '</small></div><div class="cs">' +
+        RES.filter(function (k) { return c[k]; }).map(function (k) { return '<span>' + RI[k].e + '×' + c[k] + '</span>'; }).join('') + '</div><div class="vp">' + vpTxt[it[0]] + '</div></div>';
+    }).join('') + '<p class="note">🃏 ふしぎカードの中身はいろいろ（🏆たからもの＝1点）。<br>🛤️ いちばん長いこみち（5本以上）＋2点・🏹 いちばん強い番人たち（3人以上）＋2点</p>';
+    $('costOv').classList.add('active');
+  }
+  $('costBtn').onclick = showCost;
+  $('costOv').addEventListener('click', function (e) { if (e.target === this || e.target.closest('[data-cx]')) this.classList.remove('active'); });
   // 建てる
   $('buildBtn').onclick = function () {
     var p = G.turn, P = G.players[p];
