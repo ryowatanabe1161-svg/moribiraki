@@ -195,7 +195,9 @@
     switch (a.type) {
       case 'roll': {
         if (ph !== 'roll') return fail('もうサイコロをふりました');
-        var d1 = 1 + Math.floor(rand(G) * 6), d2 = 1 + Math.floor(rand(G) * 6), s = d1 + d2;
+        var d1 = 1 + Math.floor(rand(G) * 6), d2 = 1 + Math.floor(rand(G) * 6);
+        if (G.forceDice) { d1 = G.forceDice[0]; d2 = G.forceDice[1]; G.forceDice = null; }   // テスト用フック（通常は使わない）
+        var s = d1 + d2;
         G.dice = [d1, d2];
         note(G, '🎲 ' + P.name + '：' + d1 + '＋' + d2 + '＝' + s);
         if (s === 7) {

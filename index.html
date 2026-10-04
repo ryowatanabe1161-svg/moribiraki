@@ -131,6 +131,23 @@ button:disabled{opacity:.4;cursor:default}
 @media (max-width:400px){.top .ib{padding:5px 8px;font-size:12.5px}.top .t{font-size:14px}}
 .ib::after,#cancelBtn::after{content:"";position:absolute;inset:-5px -2px}
 #toast{pointer-events:none}
+.modeSeg{margin:8px 0}.modeSeg button{flex:1;padding:12px 6px;font-size:14.5px}
+.in{width:100%;font-family:inherit;font-size:17px;padding:10px;border-radius:10px;border:2px solid #d8c9a6;background:#fff}
+.row2{display:flex;gap:8px}.row2>*{flex:1}
+.codeBig{font-size:42px;font-weight:900;letter-spacing:8px;color:var(--leaf)}
+#qr{width:140px;margin:4px auto}#qr svg{width:100%;height:auto;display:block}
+.url{font-size:11.5px;word-break:break-all;opacity:.7;margin:4px 0 8px}
+.seat{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px dashed #d8c9a6;font-weight:800}.seat:last-child{border:0}
+.seat .dot{width:22px;height:22px;border-radius:50%;flex:none}.seat .nm{flex:1}.seat.cpu{opacity:.75}.seat.off{opacity:.45}
+.tagx{font-size:11px;padding:2px 7px;border-radius:99px;background:#efe3c6}
+.xbtn{width:32px;height:32px;border-radius:50%;background:#efe3c6;font-weight:900}
+body:not(.is-host) .hostOnly{display:none!important}body:not(.is-guest) .guestOnly{display:none!important}
+#banner{display:none;position:fixed;top:0;left:0;right:0;z-index:95;background:#ffe28a;padding:6px;text-align:center;font-weight:800;font-size:13px}#banner.show{display:block}
+#lobbyReqBar{display:none;position:fixed;top:0;left:0;right:0;z-index:94;background:#fff1c1;padding:8px;gap:6px;align-items:center;flex-wrap:wrap;font-weight:800;font-size:13px}#lobbyReqBar.show{display:flex}
+#lobbyReqBar span{flex:1 1 100%}#lobbyReqBar button{padding:7px 10px;border-radius:10px;background:var(--gold);font-weight:900}
+.spin{width:38px;height:38px;border-radius:50%;border:5px solid #efe3c6;border-top-color:var(--leaf2);margin:8px auto;animation:spn 1s linear infinite}@keyframes spn{to{transform:rotate(360deg)}}
+.pc .off{color:#c0392b}
+#statusBar.myturn{background:#fff1c1;box-shadow:inset 0 0 0 3px var(--gold)}
 #toast{position:fixed;left:50%;bottom:30%;transform:translateX(-50%);background:rgba(43,36,24,.92);color:#fff;padding:9px 14px;border-radius:12px;font-weight:800;font-size:14px;z-index:90;display:none;max-width:88%;text-align:center}
 #toast.show{display:block;animation:tst 2.6s ease-out forwards}
 @keyframes tst{0%{opacity:0}8%,85%{opacity:1}100%{opacity:0}}
@@ -144,6 +161,8 @@ button:disabled{opacity:.4;cursor:default}
 <section id="setup" class="screen active">
   <div class="scol">
     <div class="logo"><div class="bear">🐻🌲</div><h1>ふーさんの もりびらき</h1><div class="sub">〜5つのめぐみで村づくり〜</div></div>
+    <div class="seg modeSeg" id="modeSeg"><button data-mode="local" class="on">📱 1台であそぶ</button><button data-mode="online">🌐 オンラインであそぶ</button></div>
+    <div id="localPanel">
     <div class="card">
       <h2>あそぶ人（3〜4人・1台の端末で順番に）</h2>
       <div class="seg" id="countSeg"><button data-n="3">3人</button><button data-n="4" class="on">4人</button></div>
@@ -152,8 +171,29 @@ button:disabled{opacity:.4;cursor:default}
     </div>
     <button class="btn main" id="startBtn" style="width:100%">はじめる！</button>
     <button class="btn" id="resumeBtn" style="width:100%;margin-top:10px;display:none">つづきから</button>
-    <button class="btn" id="rulesBtn1" style="width:100%;margin-top:10px">あそびかた</button>
     <p class="hint" style="text-align:center">通信なし・この端末だけで遊べます（オフラインOK）</p>
+    </div>
+    <div id="onlinePanel" style="display:none">
+      <div class="card"><h2>ニックネーム</h2><input class="in" id="nameIn" maxlength="8" placeholder="例：さとう" autocomplete="nickname"></div>
+      <div class="card" id="inviteJoinBox" style="display:none;text-align:center"><b>部屋 <span id="invCode"></span> に招待されています</b><button class="btn main" id="joinInvitedBtn" style="width:100%;margin-top:8px">この部屋に入る</button></div>
+      <button class="btn main" id="createBtn" style="width:100%">🏠 部屋を作る（ホスト）</button>
+      <div class="card"><h2>部屋コードで参加</h2><div class="row2"><input class="in" id="codeIn" maxlength="4" placeholder="ABCD" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:4px;font-weight:900"><button class="btn green" id="joinBtn">参加</button></div></div>
+      <p class="hint" style="text-align:center">3〜4人。足りない席はふーさん🐻（CPU）が入ります。各自のスマホ・PCで、自分の手札だけ見えます。</p>
+    </div>
+    <button class="btn" id="rulesBtn1" style="width:100%;margin-top:10px">あそびかた</button>
+  </div>
+</section>
+
+<section id="lobby" class="screen">
+  <div class="scol">
+    <div class="logo" style="margin:4px 0"><h1 style="font-size:26px">🌐 オンラインの部屋</h1></div>
+    <div class="card" style="text-align:center"><h2>部屋コード</h2><div class="codeBig" id="codeBig"></div><div id="qr"></div><div class="url" id="inviteUrl"></div>
+      <div class="row2"><button class="btn" id="copyBtn">🔗 コピー</button><button class="btn" id="shareBtn">📤 共有</button></div></div>
+    <div class="card"><h2>あそぶ人 <span id="seatCount" style="float:right"></span></h2><div id="seatList"></div><p class="hint" id="seatHint"></p>
+      <h2 style="margin-top:8px">人数（足りない席はふーさん🐻）</h2><div class="seg" id="nSeg"></div></div>
+    <button class="btn main hostOnly" id="lobbyStart" style="width:100%">▶ ゲームスタート</button>
+    <p class="hint guestOnly" style="text-align:center;font-size:14px">ホストがスタートするのを待っています…</p>
+    <div class="row2" style="margin-top:10px"><button class="btn" id="rulesBtn3">あそびかた</button><button class="btn" id="leaveBtn1">🚪 部屋を出る</button></div>
   </div>
 </section>
 
@@ -182,7 +222,13 @@ button:disabled{opacity:.4;cursor:default}
 <div class="ov" id="dlgOv"><div class="dlg" id="dlg"></div></div>
 <div class="ov" id="handoff"><div class="dlg" style="text-align:center"><div style="font-size:44px">📱🤝</div><div class="big" id="hoName"></div><p id="hoText">端末を渡してください。ほかの人は見ないでね！</p><button class="btn main" id="hoBtn" style="width:100%">わたしです！ 手札を見る</button></div></div>
 <div class="ov" id="costOv"><div id="costBox"></div></div>
+<div id="banner"></div>
+<div id="lobbyReqBar"></div>
+<div class="ov" id="connecting"><div class="dlg" style="text-align:center"><div class="spin"></div><h2 id="connTitle">接続中…</h2><p class="hint" id="connText"></p><button class="btn" id="connCancel" style="width:100%">やめる</button></div></div>
 <div id="toast"></div>
+<script src="config.js"></script>
+<script src="vendor/peerjs.min.js"></script>
+<script src="vendor/qrcode.js"></script>
 <script src="logic.js"></script>
 <script src="app.js"></script>
 </body>
