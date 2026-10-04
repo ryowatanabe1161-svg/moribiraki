@@ -166,15 +166,33 @@
     d += '<circle cx="' + R.x * S + '" cy="' + (R.y * S + S * 0.08) + '" r="' + S * 0.3 + '" fill="rgba(43,36,24,.75)"/><text x="' + R.x * S + '" y="' + (R.y * S + S * 0.2) + '" text-anchor="middle" font-size="' + S * 0.36 + '">🦝</text>';
     // ハイライト（自分の番の人間だけ）
     if (mode && viewer === me && G.players[me].kind === 'human') {
-      if (mode === 'settle') M.validVerts(G, me, G.phase === 'setup').forEach(function (v) { d += '<circle class="hl-v" data-v="' + v + '" cx="' + M.VERT[v].x * S + '" cy="' + M.VERT[v].y * S + '" r="' + S * 0.15 + '"/>'; });
+      if (mode === 'settle') M.validVerts(G, me, G.phase === 'setup').forEach(function (v) { d += '<circle class="hl-v" data-v="' + v + '" cx="' + M.VERT[v].x * S + '" cy="' + M.VERT[v].y * S + '" r="' + S * 0.19 + '"/>'; });
       if (mode === 'road') M.validEdges(G, me).forEach(function (e) { var E = M.EDGE[e], A = M.VERT[E.a], B = M.VERT[E.b]; d += '<line class="hl-e" data-e="' + e + '" x1="' + A.x * S + '" y1="' + A.y * S + '" x2="' + B.x * S + '" y2="' + B.y * S + '"/>'; });
       if (mode === 'city') G.players[me].setts.forEach(function (v) { d += '<circle class="hl-v" data-v="' + v + '" cx="' + M.VERT[v].x * S + '" cy="' + M.VERT[v].y * S + '" r="' + S * 0.2 + '"/>'; });
       if (mode === 'robber') M.HEX.forEach(function (H, i) { if (i !== G.robber) d += '<polygon class="hl-h" data-h="' + i + '" points="' + H.v.map(function (v) { return M.VERT[v].x * S + ',' + M.VERT[v].y * S; }).join(' ') + '"/>'; });
     }
     $('dyn').innerHTML = d;
   }
+  // スマホでは角・辺の印が小さい（画面上 10px 前後）ので、印から少し外れたタップも「いちばん近い印」として受け付ける
+  function nearestTarget(e) {
+    var svg = $('board'), m = svg.getScreenCTM(); if (!m) return null;
+    var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; pt = pt.matrixTransform(m.inverse());
+    var best = null, bd = Infinity;
+    Array.prototype.forEach.call(document.querySelectorAll('#dyn [data-v],#dyn [data-e]'), function (el) {
+      var d;
+      if (el.dataset.v != null) { var V = M.VERT[+el.dataset.v]; d = Math.hypot(V.x * S - pt.x, V.y * S - pt.y); }
+      else {
+        var E = M.EDGE[+el.dataset.e], A = M.VERT[E.a], B = M.VERT[E.b], ax = A.x * S, ay = A.y * S, bx = B.x * S - ax, by = B.y * S - ay;
+        var u = Math.max(0, Math.min(1, ((pt.x - ax) * bx + (pt.y - ay) * by) / (bx * bx + by * by)));
+        d = Math.hypot(ax + u * bx - pt.x, ay + u * by - pt.y) + (u < 0.15 || u > 0.85 ? S * 0.12 : 0);   // 端（角の近く）はやや不利に
+      }
+      if (d < bd) { bd = d; best = el; }
+    });
+    return best && bd <= S * 0.5 ? best : null;
+  }
   $('board').addEventListener('click', function (e) {
-    var t = e.target.closest('[data-v],[data-e],[data-h]'); if (!t || !G || !mode) return;
+    if (!G || !mode) return;
+    var t = e.target.closest('[data-v],[data-e],[data-h]') || nearestTarget(e); if (!t) return;
     var p = G.turn;
     if (t.dataset.h != null) return doAct({ p: p, type: 'robber', h: +t.dataset.h });
     if (G.phase === 'setup') return doAct(t.dataset.v != null ? { p: p, type: 'settle', v: +t.dataset.v } : { p: p, type: 'road', e: +t.dataset.e });
@@ -210,10 +228,14 @@
         '<div id="devChip"><div class="e">🃏</div>' + P.dev.length + '枚</div>';
     }
     var mine = me === cur && G.players[cur].kind === 'human' && G.phase !== 'over';
-    $('rollBtn').disabled = !(mine && G.phase === 'roll');
-    $('buildBtn').disabled = $('tradeBtn').disabled = !(mine && G.phase === 'main');
-    $('devBtn').disabled = !(mine && (G.phase === 'main' || G.phase === 'roll'));
-    $('endBtn').disabled = !(mine && G.phase === 'main');
+    // disabled 属性だと押しても何も起きず「反応しない」と感じるので、見た目だけ薄くして、押したら理由を出す
+    var why = !mine ? (G.phase === 'over' ? 'ゲームは終わりました' : G.players[cur].kind === 'npc' ? G.players[cur].name + 'の番です。考え中クマ…ちょっと待ってね' : G.players[cur].name + 'の番です')
+      : G.phase === 'setup' ? 'じゅんび中：盤の光っている所をタップしてね' : G.phase === 'roll' ? '先にサイコロをふってね' : G.phase === 'robber' ? '先にアライグマを動かしてね（盤のマスをタップ）'
+      : G.phase === 'steal' ? '先にだれから1枚もらうか選んでね' : G.phase === 'roads' ? 'ただのこみちを置いてね（盤の辺をタップ）' : G.phase === 'discard' ? '手札をすてる人を待っています' : '';
+    setAct('rollBtn', mine && G.phase === 'roll', mine && G.phase === 'main' ? 'サイコロはもうふりました' : why);
+    setAct('buildBtn', mine && G.phase === 'main', why); setAct('tradeBtn', mine && G.phase === 'main', why);
+    setAct('devBtn', mine && (G.phase === 'main' || G.phase === 'roll'), why);
+    setAct('endBtn', mine && G.phase === 'main', why);
     var st = '', cn = esc(G.players[cur].name), cancel = false;
     if (G.phase === 'over') st = '🎉 ' + esc(G.players[G.winner].name) + 'の勝ち！';
     else if (G.players[cur].kind === 'npc') st = cn + 'が考え中クマ…' + (G.phase === 'setup' ? '（じゅんび）' : '');
@@ -230,6 +252,11 @@
     else st = '🔨 建てる・🔁 交換・🃏 カード。終わったら「おわる」';
     $('status').innerHTML = st; $('cancelBtn').style.display = cancel ? '' : 'none';
   }
+  function setAct(id, ok, why) { var b = $(id); b.classList.toggle('dis', !ok); b.setAttribute('aria-disabled', ok ? 'false' : 'true'); b.dataset.why = ok ? '' : (why || 'いまは使えません'); }
+  // .dis のボタンは本来の処理の前で止めて理由を表示（キャプチャ段階）
+  $('actions').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.classList.contains('dis')) { e.stopImmediatePropagation(); e.preventDefault(); toast(b.dataset.why); } }, true);
+  // iOS Safari は touchstart リスナーがないと :active（押した感）が出ない
+  document.addEventListener('touchstart', function () {}, { passive: true });
   $('cancelBtn').onclick = function () { if (G.phase === 'roads') doAct({ p: G.turn, type: 'endRoads' }); else { mode = null; render(); } };
   $('rollBtn').onclick = function () { doAct({ p: G.turn, type: 'roll' }); };
   $('endBtn').onclick = function () { mode = null; doAct({ p: G.turn, type: 'end' }); };

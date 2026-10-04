@@ -9,7 +9,11 @@
 <style>
 :root{--leaf:#2f5d3a;--leaf2:#3f7a4c;--cream:#fff8e8;--ink:#2b2418;--gold:#f2b632;--bark:#7a5230;--sea:#5aa9c9;
   --font:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI",Meiryo,system-ui,sans-serif}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* 押した感（スマホでも見えるように :active + .pressed） */
+button:not(:disabled):not(.dis):active,button.pressed{filter:brightness(.88);transform:scale(.96)}
+button.dis{opacity:.4}
 html,body{margin:0;height:100%}
 body{font-family:var(--font);color:var(--ink);background:radial-gradient(ellipse at 50% 0%,#cfe8c3,#9fcb8f 60%,#6fa565);overflow:hidden}
 button{font-family:inherit;cursor:pointer;border:none}
@@ -43,7 +47,7 @@ button:disabled{opacity:.4;cursor:default}
 .top{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--leaf);color:#fff}
 .top .t{font-weight:900;font-size:15px;white-space:nowrap}
 .top .sp{flex:1}
-.ib{padding:5px 10px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(255,255,255,.18);color:#fff}
+.ib{position:relative;min-height:36px;padding:5px 10px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(255,255,255,.18);color:#fff}
 #players{display:grid;grid-template-columns:repeat(var(--np,4),minmax(0,1fr));gap:4px;padding:5px 6px}
 .pc{background:rgba(255,248,232,.9);border-radius:10px;padding:4px 6px;border:2px solid transparent;min-width:0;font-size:11.5px;position:relative}
 .pc.cur{border-color:var(--pc);box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 10px var(--pc)}
@@ -53,9 +57,9 @@ button:disabled{opacity:.4;cursor:default}
 .pc .vp{font-weight:900;color:#b0400f}
 .pc .bd{position:absolute;top:-7px;right:3px;font-size:10px;background:var(--gold);border-radius:6px;padding:0 4px;font-weight:900}
 #boardWrap{position:relative;overflow:auto;min-height:0;display:flex}
-#board{margin:auto;display:block;touch-action:manipulation}
-.zoom{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:4px;z-index:3}
-.zoom button{width:34px;height:34px;border-radius:50%;background:rgba(255,248,232,.92);font-weight:900;font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+#board{margin:auto;display:block;flex:none;touch-action:manipulation}
+.zoom{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:6px;z-index:3}
+.zoom button{width:40px;height:40px;border-radius:50%;background:rgba(255,248,232,.92);font-weight:900;font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 #dice{position:absolute;left:8px;top:8px;display:flex;gap:5px;z-index:3;pointer-events:none}
 .die{width:34px;height:34px;border-radius:8px;background:#fff;box-shadow:0 3px 0 #b9a27a;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:4px}
 .die i{border-radius:50%;margin:1.5px}.die i.on{background:#2b2418}
@@ -63,7 +67,7 @@ button:disabled{opacity:.4;cursor:default}
 @keyframes shake{50%{transform:rotate(18deg) translateY(-4px)}}
 #statusBar{padding:5px 10px;background:rgba(255,248,232,.92);font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center;min-height:34px}
 #statusBar .msg{flex:1;line-height:1.35}
-#statusBar .cancel{padding:5px 10px;font-size:12px}
+#statusBar .cancel{position:relative;min-height:34px;padding:5px 12px;font-size:12.5px}
 #log{font-size:11.5px;line-height:1.5;max-height:38px;overflow:hidden;opacity:.85;padding:0 10px 3px;background:rgba(255,248,232,.92)}
 #log div:first-child{font-weight:800;opacity:1}
 #log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -76,7 +80,7 @@ button:disabled{opacity:.4;cursor:default}
 #devChip .e{font-size:20px}
 #hidden{text-align:center;font-weight:800;padding:12px 0;font-size:13px;display:none}
 #actions{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-#actions .btn{padding:9px 2px;font-size:13px;line-height:1.2}
+#actions .btn{min-height:50px;padding:9px 2px;font-size:13px;line-height:1.2}
 #actions .btn small{display:block;font-size:10px;opacity:.8}
 @media (min-width:900px){
   #game.active{grid-template-columns:1fr 380px;grid-template-rows:auto 1fr auto auto;grid-template-areas:"top top" "board side" "board status" "board dock"}
@@ -106,7 +110,7 @@ button:disabled{opacity:.4;cursor:default}
 .step{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:4px 0 8px}
 .step div{background:var(--rc);border-radius:10px;text-align:center;padding:4px 0}
 .step .e{font-size:19px}.step b{display:block;font-size:17px}
-.step button{width:26px;height:24px;border-radius:7px;background:rgba(255,255,255,.75);font-weight:900;margin:1px}
+.step button{width:34px;height:32px;border-radius:7px;background:rgba(255,255,255,.75);font-weight:900;margin:1px}
 .lab{font-weight:900;font-size:13px;color:var(--bark);margin-top:6px}
 .resp{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;background:#efe3c6;margin:4px 0;font-size:13px;font-weight:700}
 .resp .btn{margin-left:auto;padding:6px 10px;font-size:13px}
@@ -125,6 +129,8 @@ button:disabled{opacity:.4;cursor:default}
 .crow .vp{font-weight:900;color:#b5651d;font-size:13px;min-width:34px;text-align:right}
 #costBox .note{font-size:11.5px;line-height:1.5;margin:6px 2px 0;opacity:.85}
 @media (max-width:400px){.top .ib{padding:5px 8px;font-size:12.5px}.top .t{font-size:14px}}
+.ib::after,#cancelBtn::after{content:"";position:absolute;inset:-5px -2px}
+#toast{pointer-events:none}
 #toast{position:fixed;left:50%;bottom:30%;transform:translateX(-50%);background:rgba(43,36,24,.92);color:#fff;padding:9px 14px;border-radius:12px;font-weight:800;font-size:14px;z-index:90;display:none;max-width:88%;text-align:center}
 #toast.show{display:block;animation:tst 2.6s ease-out forwards}
 @keyframes tst{0%{opacity:0}8%,85%{opacity:1}100%{opacity:0}}
