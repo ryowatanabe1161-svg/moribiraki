@@ -25,8 +25,8 @@ button:disabled{opacity:.4;cursor:default}
 .btn.green{background:linear-gradient(180deg,#6fbf6f,#3f8f4a);color:#fff;box-shadow:0 3px 0 #255c2c}
 .btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #b9a27a}
 /* setup */
-#setup{align-items:center;overflow-y:auto}
-.scol{width:100%;max-width:520px;padding:14px}
+#setup,#lobby{align-items:center;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+.scol{width:100%;max-width:520px;padding:14px 14px calc(28px + env(safe-area-inset-bottom));flex:none}
 .logo{text-align:center;margin:10px 0 6px}
 .logo h1{margin:0;font-size:clamp(28px,9vw,42px);color:#fff;text-shadow:0 3px 0 var(--leaf),0 0 14px rgba(0,0,0,.25);letter-spacing:2px}
 .logo .sub{font-weight:800;color:var(--leaf);margin-top:2px}
@@ -98,7 +98,7 @@ button:disabled{opacity:.4;cursor:default}
 /* overlays */
 .ov{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(20,30,15,.55)}
 .ov.active{display:flex}
-.dlg{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;background:var(--cream);border-radius:18px;padding:14px;border:4px solid var(--leaf2);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.dlg{width:100%;max-width:440px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--cream);border-radius:18px;padding:14px;border:4px solid var(--leaf2);box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .dlg h2{margin:0 0 8px;text-align:center;color:var(--leaf);font-size:19px}
 .dlg p,.dlg li{font-size:14px;line-height:1.6}
 .dlg .row{display:flex;gap:8px;margin-top:10px}.dlg .row .btn{flex:1}

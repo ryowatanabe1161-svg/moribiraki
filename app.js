@@ -903,8 +903,19 @@
     });
   });
   $('leaveBtn1').onclick = leaveRoom;
-  $('copyBtn').onclick = function () { var u = $('inviteUrl').textContent; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { toast('招待URLをコピーしました'); }, function () { toast('URLを長押ししてコピーしてください'); }); };
-  $('shareBtn').onclick = function () { var u = $('inviteUrl').textContent; if (navigator.share) navigator.share({ title: 'ふーさんの もりびらき', text: 'いっしょに森の村づくりをしよう！', url: u }).catch(function () {}); else $('copyBtn').click(); };
+  function copyUrl() {
+    var u = $('inviteUrl').textContent;
+    function legacy() { try { var ta = document.createElement('textarea'); ta.value = u; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, u.length); var ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; } }
+    var p = navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(u) : Promise.reject();
+    p.then(function () { toast('招待URLをコピーしました'); }, function () { toast(legacy() ? '招待URLをコピーしました' : 'URLを長押ししてコピーしてください'); });
+  }
+  $('copyBtn').onclick = copyUrl;
+  // 共有：ユーザー操作の中で同期的に navigator.share を呼ぶ（iOS Safari の条件）。使えない・失敗したらコピー
+  $('shareBtn').onclick = function () {
+    var data = { title: 'ふーさんの もりびらき', text: 'いっしょに森の村づくりをしよう！ 部屋コード ' + $('codeBig').textContent, url: $('inviteUrl').textContent };
+    if (!navigator.share || (navigator.canShare && !navigator.canShare(data))) return copyUrl();
+    try { navigator.share(data).catch(function (e) { if (!e || e.name !== 'AbortError') copyUrl(); }); } catch (e) { copyUrl(); }
+  };
 
   // ---------------- タイトル（1台 / オンライン） ----------------
   function setTitleMode(m) {
