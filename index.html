@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5d3a">
+<title>ふーさんの もりびらき 〜5つのめぐみで村づくり〜</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E🌲%3C/text%3E%3C/svg%3E">
+<style>
+:root{--leaf:#2f5d3a;--leaf2:#3f7a4c;--cream:#fff8e8;--ink:#2b2418;--gold:#f2b632;--bark:#7a5230;--sea:#5aa9c9;
+  --font:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI",Meiryo,system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);background:radial-gradient(ellipse at 50% 0%,#cfe8c3,#9fcb8f 60%,#6fa565);overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:none}
+button:disabled{opacity:.4;cursor:default}
+.screen{position:fixed;inset:0;display:none;flex-direction:column}
+.screen.active{display:flex}
+.btn{padding:10px 14px;border-radius:12px;font-weight:800;font-size:15px;background:var(--cream);color:var(--ink);box-shadow:0 3px 0 #b9a27a}
+.btn.main{background:linear-gradient(180deg,#ffe28a,var(--gold));box-shadow:0 4px 0 #a5761a;font-size:17px}
+.btn.green{background:linear-gradient(180deg,#6fbf6f,#3f8f4a);color:#fff;box-shadow:0 3px 0 #255c2c}
+.btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #b9a27a}
+/* setup */
+#setup{align-items:center;overflow-y:auto}
+.scol{width:100%;max-width:520px;padding:14px}
+.logo{text-align:center;margin:10px 0 6px}
+.logo h1{margin:0;font-size:clamp(28px,9vw,42px);color:#fff;text-shadow:0 3px 0 var(--leaf),0 0 14px rgba(0,0,0,.25);letter-spacing:2px}
+.logo .sub{font-weight:800;color:var(--leaf);margin-top:2px}
+.logo .bear{font-size:46px;animation:bob 2.4s ease-in-out infinite;display:inline-block}
+@keyframes bob{50%{transform:translateY(-5px) rotate(-6deg)}}
+.card{background:rgba(255,248,232,.92);border-radius:16px;padding:12px;margin:10px 0;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.card h2{margin:0 0 8px;font-size:16px;color:var(--leaf)}
+.prow{display:flex;align-items:center;gap:6px;margin:6px 0}
+.prow .dot{width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.prow input{flex:1;min-width:0;font-family:inherit;font-size:16px;padding:8px;border-radius:10px;border:2px solid #d8c9a6;background:#fff}
+.seg{display:flex;gap:4px}
+.seg button{padding:8px 9px;border-radius:9px;font-weight:800;font-size:13px;background:#efe3c6;color:var(--ink)}
+.seg button.on{background:var(--leaf2);color:#fff}
+.hint{font-size:12px;opacity:.8;line-height:1.5}
+/* game */
+#game{display:none}
+#game.active{display:grid;grid-template-rows:auto auto 1fr auto auto;height:100%}
+.top{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--leaf);color:#fff}
+.top .t{font-weight:900;font-size:15px;white-space:nowrap}
+.top .sp{flex:1}
+.ib{padding:5px 10px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(255,255,255,.18);color:#fff}
+#players{display:grid;grid-template-columns:repeat(var(--np,4),minmax(0,1fr));gap:4px;padding:5px 6px}
+.pc{background:rgba(255,248,232,.9);border-radius:10px;padding:4px 6px;border:2px solid transparent;min-width:0;font-size:11.5px;position:relative}
+.pc.cur{border-color:var(--pc);box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 10px var(--pc)}
+.pc .nm{font-weight:900;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px}
+.pc .nm i{width:11px;height:11px;border-radius:50%;background:var(--pc);flex:none;display:inline-block}
+.pc .st{display:flex;gap:5px;flex-wrap:wrap;margin-top:1px;white-space:nowrap}
+.pc .vp{font-weight:900;color:#b0400f}
+.pc .bd{position:absolute;top:-7px;right:3px;font-size:10px;background:var(--gold);border-radius:6px;padding:0 4px;font-weight:900}
+#boardWrap{position:relative;overflow:auto;min-height:0;display:flex}
+#board{margin:auto;display:block;touch-action:manipulation}
+.zoom{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:4px;z-index:3}
+.zoom button{width:34px;height:34px;border-radius:50%;background:rgba(255,248,232,.92);font-weight:900;font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+#dice{position:absolute;left:8px;top:8px;display:flex;gap:5px;z-index:3;pointer-events:none}
+.die{width:34px;height:34px;border-radius:8px;background:#fff;box-shadow:0 3px 0 #b9a27a;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:4px}
+.die i{border-radius:50%;margin:1.5px}.die i.on{background:#2b2418}
+.die.roll{animation:shake .12s linear infinite}
+@keyframes shake{50%{transform:rotate(18deg) translateY(-4px)}}
+#statusBar{padding:5px 10px;background:rgba(255,248,232,.92);font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center;min-height:34px}
+#statusBar .msg{flex:1;line-height:1.35}
+#statusBar .cancel{padding:5px 10px;font-size:12px}
+#log{font-size:11.5px;line-height:1.5;max-height:38px;overflow:hidden;opacity:.85;padding:0 10px 3px;background:rgba(255,248,232,.92)}
+#log div:first-child{font-weight:800;opacity:1}
+#log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dock{background:linear-gradient(180deg,#3f7a4c,#2f5d3a);padding:6px 8px calc(8px + env(safe-area-inset-bottom));color:#fff}
+#hand{display:flex;gap:4px;margin-bottom:6px;align-items:stretch}
+.rc{flex:1;min-width:0;border-radius:10px;background:var(--rc);color:var(--ink);text-align:center;padding:3px 0;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);position:relative}
+.rc .e{font-size:20px;line-height:1.1}.rc .n{font-weight:900;font-size:15px}.rc .l{font-size:9.5px;font-weight:800;opacity:.8}
+.rc.zero{opacity:.45}
+#devChip{flex:none;width:56px;border-radius:10px;background:#5b3f8f;color:#fff;font-weight:900;text-align:center;padding:3px 0;font-size:12px}
+#devChip .e{font-size:20px}
+#hidden{text-align:center;font-weight:800;padding:12px 0;font-size:13px;display:none}
+#actions{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+#actions .btn{padding:9px 2px;font-size:13px;line-height:1.2}
+#actions .btn small{display:block;font-size:10px;opacity:.8}
+@media (min-width:900px){
+  #game.active{grid-template-columns:1fr 380px;grid-template-rows:auto 1fr auto auto;grid-template-areas:"top top" "board side" "board status" "board dock"}
+  .top{grid-area:top}#boardWrap{grid-area:board}#players{grid-area:side;grid-template-columns:1fr 1fr;align-content:start;overflow:auto}
+  #statusWrap{grid-area:status}#dock{grid-area:dock}#log{max-height:none;height:150px}
+}
+/* svg */
+.hex{stroke:#f6efd6;stroke-width:3}
+.hl-v{fill:#fff;stroke:#2b2418;stroke-width:2;cursor:pointer;animation:pulse 1s ease-in-out infinite}
+.hl-e{stroke:#fff;stroke-width:9;stroke-linecap:round;stroke-dasharray:4 7;cursor:pointer;animation:pulse 1s ease-in-out infinite}
+.hl-h{fill:rgba(255,255,255,.35);stroke:#fff;stroke-width:4;cursor:pointer;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+.flash{animation:flash .9s ease-out 2}
+@keyframes flash{50%{filter:brightness(1.5) drop-shadow(0 0 8px #fff)}}
+/* overlays */
+.ov{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(20,30,15,.55)}
+.ov.active{display:flex}
+.dlg{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;background:var(--cream);border-radius:18px;padding:14px;border:4px solid var(--leaf2);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.dlg h2{margin:0 0 8px;text-align:center;color:var(--leaf);font-size:19px}
+.dlg p,.dlg li{font-size:14px;line-height:1.6}
+.dlg .row{display:flex;gap:8px;margin-top:10px}.dlg .row .btn{flex:1}
+.tabs{display:flex;gap:4px;margin-bottom:8px}.tabs button{flex:1;padding:8px;border-radius:10px;font-weight:900;background:#efe3c6}.tabs button.on{background:var(--leaf2);color:#fff}
+.rpick{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:4px 0 8px}
+.rpick button{border-radius:10px;padding:5px 0;background:var(--rc);font-weight:900;font-size:12px;border:3px solid transparent;line-height:1.25}
+.rpick button.on{border-color:#2b2418;box-shadow:0 0 0 2px #fff inset}
+.rpick button .e{font-size:20px;display:block}
+.step{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:4px 0 8px}
+.step div{background:var(--rc);border-radius:10px;text-align:center;padding:4px 0}
+.step .e{font-size:19px}.step b{display:block;font-size:17px}
+.step button{width:26px;height:24px;border-radius:7px;background:rgba(255,255,255,.75);font-weight:900;margin:1px}
+.lab{font-weight:900;font-size:13px;color:var(--bark);margin-top:6px}
+.resp{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;background:#efe3c6;margin:4px 0;font-size:13px;font-weight:700}
+.resp .btn{margin-left:auto;padding:6px 10px;font-size:13px}
+.bopt{display:flex;align-items:center;gap:8px;width:100%;padding:9px;border-radius:12px;background:#efe3c6;margin:5px 0;font-weight:800;font-size:15px;text-align:left}
+.bopt .c{margin-left:auto;font-size:15px;letter-spacing:1px}
+#handoff .big{font-size:24px;font-weight:900;color:var(--leaf);text-align:center;margin:10px 0}
+#toast{position:fixed;left:50%;bottom:30%;transform:translateX(-50%);background:rgba(43,36,24,.92);color:#fff;padding:9px 14px;border-radius:12px;font-weight:800;font-size:14px;z-index:90;display:none;max-width:88%;text-align:center}
+#toast.show{display:block;animation:tst 2.6s ease-out forwards}
+@keyframes tst{0%{opacity:0}8%,85%{opacity:1}100%{opacity:0}}
+.rank{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:12px;background:#efe3c6;margin:5px 0;font-weight:800}
+.rank.win{background:#ffe7a3;box-shadow:inset 0 0 0 2px var(--gold)}
+.rank .v{margin-left:auto;font-size:20px;color:#b0400f}
+.rank small{display:block;font-size:11px;opacity:.75;font-weight:700}
+</style>
+</head>
+<body>
+<section id="setup" class="screen active">
+  <div class="scol">
+    <div class="logo"><div class="bear">🐻🌲</div><h1>ふーさんの もりびらき</h1><div class="sub">〜5つのめぐみで村づくり〜</div></div>
+    <div class="card">
+      <h2>あそぶ人（3〜4人・1台の端末で順番に）</h2>
+      <div class="seg" id="countSeg"><button data-n="3">3人</button><button data-n="4" class="on">4人</button></div>
+      <div id="plist"></div>
+      <div class="hint">人間が2人以上いるときは、番が変わるたびに「端末を渡してね」画面が出て、手札をかくします。</div>
+    </div>
+    <button class="btn main" id="startBtn" style="width:100%">はじめる！</button>
+    <button class="btn" id="resumeBtn" style="width:100%;margin-top:10px;display:none">つづきから</button>
+    <button class="btn" id="rulesBtn1" style="width:100%;margin-top:10px">あそびかた</button>
+    <p class="hint" style="text-align:center">通信なし・この端末だけで遊べます（オフラインOK）</p>
+  </div>
+</section>
+
+<section id="game" class="screen">
+  <div class="top"><span class="t">🌲 もりびらき</span><span class="sp"></span><span class="ib" id="turnChip"></span><button class="ib" id="rulesBtn2">ルール</button><button class="ib" id="menuBtn">⋯</button></div>
+  <div id="players"></div>
+  <div id="boardWrap">
+    <div id="dice"></div>
+    <div class="zoom"><button id="zIn">＋</button><button id="zOut">－</button><button id="zFit">⤢</button></div>
+    <svg id="board"></svg>
+  </div>
+  <div id="statusWrap"><div id="statusBar"><span class="msg" id="status"></span><button class="btn cancel" id="cancelBtn" style="display:none">やめる</button></div><div id="log"></div></div>
+  <div id="dock">
+    <div id="hand"></div>
+    <div id="hidden">🙈 手札はかくれています</div>
+    <div id="actions">
+      <button class="btn main" id="rollBtn">🎲<small>サイコロ</small></button>
+      <button class="btn" id="buildBtn">🔨<small>建てる</small></button>
+      <button class="btn" id="tradeBtn">🔁<small>交換</small></button>
+      <button class="btn" id="devBtn">🃏<small>カード</small></button>
+      <button class="btn green" id="endBtn">⏭<small>おわる</small></button>
+    </div>
+  </div>
+</section>
+
+<div class="ov" id="dlgOv"><div class="dlg" id="dlg"></div></div>
+<div class="ov" id="handoff"><div class="dlg" style="text-align:center"><div style="font-size:44px">📱🤝</div><div class="big" id="hoName"></div><p id="hoText">端末を渡してください。ほかの人は見ないでね！</p><button class="btn main" id="hoBtn" style="width:100%">わたしです！ 手札を見る</button></div></div>
+<div id="toast"></div>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
