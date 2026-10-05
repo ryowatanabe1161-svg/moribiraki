@@ -417,10 +417,11 @@
   }
   $('menuBtn').onclick = function () {
     if (NET) return netMenu();
-    openDlg('<h2>メニュー</h2><button class="bopt" data-m="home">🏠 タイトルへ（つづきから再開できます）</button><button class="bopt" data-m="new">🔄 同じメンバーで新しいゲーム</button><div class="row"><button class="btn" data-x>とじる</button></div>');
+    openDlg('<h2>メニュー</h2><button class="bopt" data-m="home">🏠 タイトルへ（つづきから再開できます）</button><button class="bopt" data-m="new">🔄 同じメンバーで新しいゲーム</button><button class="bopt" data-m="hiroba">🏠 ひろばへ</button><div class="row"><button class="btn" data-x>とじる</button></div>');
     $('dlg').onclick = function (e) {
       var b = e.target.closest('[data-m]'); if (e.target.closest('[data-x]')) return closeDlg(); if (!b) return; closeDlg();
       if (b.dataset.m === 'home') { clearTimeout(npcT); var g = G; G = null; save0(g); show('setup'); renderSetup(); }
+      else if (b.dataset.m === 'hiroba') location.href = 'https://ryowatanabe1161-svg.github.io/fuusan-games/';
       else newGame(G.players.map(function (p) { return { name: p.name, kind: p.kind }; }));
     };
   };
@@ -457,6 +458,13 @@
   function cleanName(n) { return String(n || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 8); }
   function genCode() { var c = ''; for (var i = 0; i < 4; i++) c += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return c; }
   function normCode(c) { return String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/O/g, '0').replace(/I/g, '1').slice(0, 4); }
+  function showHirobaTitle() {
+    var el = $('hirobaTitle'), fab = $('hirobaFab'), want = false;
+    try { want = new URLSearchParams(location.search).get('from') === 'portal' || window.matchMedia('(display-mode: standalone)').matches || !!navigator.standalone; } catch (e) {}
+    if (el) { el.hidden = !want; el.style.display = want ? 'inline-block' : 'none'; }
+    if (fab) fab.hidden = !want;
+  }
+  showHirobaTitle();
   function inviteUrl(code) { var u = location.origin + location.pathname + '?room=' + code; if (Q.get('ice')) u += '&ice=' + encodeURIComponent(Q.get('ice')); return u; }
   function banner(msg) { $('banner').textContent = msg || ''; $('banner').classList.toggle('show', !!msg); }
   function connecting(on, title, text, onCancel) {
@@ -840,7 +848,7 @@
   function netMenu() {
     var offTurn = host && host.room.G && host.room.pids.some(function (_, q) { var s = seatOfP(q); return s && s.kind === 'remote' && !s.connected && host.room.ctl[q] === 'human'; });
     openDlg('<h2>メニュー</h2>' + (host ? '<button class="bopt" data-m="abort">⏸️ 中断してロビーに戻る</button>' + (offTurn ? '<button class="bopt" data-m="take">🐻 切断中の人をふーさんに交代</button>' : '') : '<button class="bopt" data-m="req">🙋 ロビーに戻りたい（ホストに伝える）</button>') +
-      '<button class="bopt" data-m="vib">📳 あなたの番の振動：' + (vibOn() ? 'ON' : 'OFF') + '</button><button class="bopt" data-m="leave">🚪 ' + (host ? '部屋を閉じる' : '退出する') + '</button><div class="row"><button class="btn" data-x>とじる</button></div>', 'menu');
+      '<button class="bopt" data-m="vib">📳 あなたの番の振動：' + (vibOn() ? 'ON' : 'OFF') + '</button><button class="bopt" data-m="leave">🚪 ' + (host ? '部屋を閉じる' : '退出する') + '</button><button class="bopt" data-m="hiroba">🏠 ひろばへ</button><div class="row"><button class="btn" data-x>とじる</button></div>', 'menu');
     $('dlg').onclick = function (e) {
       var b = e.target.closest('[data-m]'); if (e.target.closest('[data-x]')) return closeDlg(); if (!b) return; closeDlg();
       var m = b.dataset.m;
@@ -849,6 +857,7 @@
       else if (m === 'req') { send({ t: 'lobbyReq' }); toast('ホストに「ロビーに戻りたい」と伝えました'); }
       else if (m === 'vib') { lsSet(LS_VIB, vibOn() ? 'off' : 'on'); toast('振動 ' + (vibOn() ? 'ON' : 'OFF')); }
       else if (m === 'leave') leaveRoom();
+      else if (m === 'hiroba') location.href = 'https://ryowatanabe1161-svg.github.io/fuusan-games/';
     };
   }
   function leaveRoom() {
