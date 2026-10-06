@@ -49,7 +49,14 @@
   $('resumeBtn').onclick = function () { var s = load(); if (s) { G = s.G; viewer = -1; show('game'); buildBoard(); step(); } };
   function save() { try { localStorage.setItem(SAVE, JSON.stringify({ G: G, at: Date.now() })); } catch (e) {} }
   function load() { try { return JSON.parse(localStorage.getItem(SAVE)); } catch (e) { return null; } }
-  function show(id) { ['setup', 'lobby', 'game'].forEach(function (s) { $(s).classList.toggle('active', s === id); }); }
+  function show(id) { ['setup', 'lobby', 'game'].forEach(function (s) { $(s).classList.toggle('active', s === id); }); syncHirobaFab(); }
+  // 対局中だけフローティングの「ひろばへ」を隠す。結果（phase==='over'）・タイトル・ロビーでは出す。
+  function syncHirobaFab() {
+    var onGame = $('game').classList.contains('active');
+    var over = !!(onGame && G && G.phase === 'over');
+    document.body.classList.toggle('in-game', onGame && !over);
+    document.body.classList.toggle('game-over', over);
+  }
 
   // ---------- ゲーム状態 ----------
   var NET = null;   // オンライン時：{ role: 'host'|'guest', me, ctl, conn }
@@ -403,7 +410,7 @@
     $('dlg').onclick = null; next();
   }
   // おわり
-  function showEnd() { $('toast').classList.remove('show'); if (NET) return showEndOnline();
+  function showEnd() { syncHirobaFab(); $('toast').classList.remove('show'); if (NET) return showEndOnline();
     var order = G.players.map(function (_, i) { return i; }).sort(function (a, b) { return M.vp(G, b) - M.vp(G, a); });
     lock(true);
     openDlg('<h2>🎉 ' + esc(G.players[G.winner].name) + 'の勝ち！</h2><p style="text-align:center;margin:0">' + (G.players[G.winner].kind === 'npc' ? '🐻「やったクマ〜！ みんなありがとクマ！」' : '森いちばんの村ができました！') + '</p>' + order.map(function (i) {
