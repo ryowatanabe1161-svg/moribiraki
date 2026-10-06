@@ -82,6 +82,10 @@ button:disabled{opacity:.4;cursor:default}
 #actions{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
 #actions .btn{min-height:50px;padding:9px 2px;font-size:13px;line-height:1.2}
 #actions .btn small{display:block;font-size:10px;opacity:.8}
+/* 対局中はフローティングの「ひろばへ」を隠し、建てる／交換／カード／おわる に被さらないようにする。
+   タイトル・ロビー・結果では出す（数列陣と同じ）。結果ダイアログより手前に出す。 */
+body.in-game .hiroba-fab{display:none!important}
+body.game-over .hiroba-fab{z-index:60}
 @media (min-width:900px){
   #game.active{grid-template-columns:1fr 380px;grid-template-rows:auto 1fr auto auto;grid-template-areas:"top top" "board side" "board status" "board dock"}
   .top{grid-area:top}#boardWrap{grid-area:board}#players{grid-area:side;grid-template-columns:1fr 1fr;align-content:start;overflow:auto}
